@@ -8,7 +8,6 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
 import static org.baktra.dtblib.HybridDecompression.COMPRESS_APLIB;
 import static org.baktra.dtblib.HybridDecompression.COMPRESS_LZ4;
 import static org.baktra.dtblib.HybridDecompression.COMPRESS_ZX0;
@@ -292,7 +291,8 @@ public class DOS2Binary {
      * @param extraAdress Address of the jump segment emulation code
      * @param extra Generate jump segment emulation code
      * @throws org.baktra.dtblib.DOS2BinaryProcessingException
-     * @throws IOException,NumberFormatException
+     * @throws java.io.IOException
+     * @throws NumberFormatException
      */
     public void createMonolithicBinary(String outname, String extraAdress, boolean extra) throws DOS2BinaryProcessingException, IOException, NumberFormatException {
 
@@ -360,7 +360,7 @@ public class DOS2Binary {
             }
 
             /*Segment with jump vectors*/
- /*Get portions that are not jump vectors*/
+            /*Get portions that are not jump vectors*/
             Segment.SegmentPortionCrate[] portions = seg.getNonVectorPortions();
 
             for (Segment.SegmentPortionCrate portion : portions) {
@@ -383,10 +383,7 @@ public class DOS2Binary {
 
             int pos = extraCodeAddress;
 
-            Iterator<Segment> it = segmentList.iterator();
-
-            while (it.hasNext()) {
-                Segment seg = it.next();
+            for (Segment seg : segmentList) {
                 if (seg.hasNoVector() == true) {
                     continue;
                 }
@@ -418,9 +415,7 @@ public class DOS2Binary {
 
         }
         /*Only browse for possible run segments*/ else {
-            Iterator<Segment> it = segmentList.iterator();
-            while (it.hasNext()) {
-                Segment seg = it.next();
+            for (Segment seg : segmentList) {
                 if (seg.hasFullRunVector() == true) {
                     runVector = seg.getRunVector();
                 }
@@ -616,9 +611,7 @@ public class DOS2Binary {
      * @return true When file contains at least one INIT vector
      */
     public boolean hasInitVector() {
-        Iterator<Segment> it = segmentList.iterator();
-        while (it.hasNext()) {
-            Segment seg = it.next();
+        for (Segment seg : segmentList) {
             if (seg.hasInitVector() == true) {
                 return true;
             }
@@ -631,9 +624,7 @@ public class DOS2Binary {
      * @return
      */
     public boolean hasRunVector() {
-        Iterator<Segment> it = segmentList.iterator();
-        while (it.hasNext()) {
-            Segment seg = it.next();
+        for (Segment seg : segmentList) {
             if (seg.hasRunVector() == true) {
                 return true;
             }
@@ -642,9 +633,7 @@ public class DOS2Binary {
     }
 
     public boolean hasCompressedSegment() {
-        Iterator<Segment> it = segmentList.iterator();
-        while (it.hasNext()) {
-            Segment seg = it.next();
+        for (Segment seg : segmentList) {
             if (seg.isCompressed() == true) {
                 return true;
             }
@@ -683,10 +672,7 @@ public class DOS2Binary {
         Iterator<Segment> segIter = segmentList.iterator();
         Segment s1 = segIter.next();
         if (segmentCount == 1) {
-            if (!s1.hasPartialRunVector()) {
-                return true;
-            }
-            return false;
+            return !s1.hasPartialRunVector();
         }
 
         /*If there are two segments, we must ensure that:
@@ -803,10 +789,7 @@ public class DOS2Binary {
         int initCounter = 0;
         int hasRun = 0;
 
-        Iterator<Segment> it = segmentList.iterator();
-
-        while (it.hasNext()) {
-            Segment seg = it.next();
+        for (Segment seg : segmentList) {
             if (seg.hasFullInitVector()) {
                 initCounter++;
             }
