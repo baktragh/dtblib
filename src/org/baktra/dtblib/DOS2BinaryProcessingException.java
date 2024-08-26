@@ -1,4 +1,4 @@
-package org.baktra.xexlib;
+package org.baktra.dtblib;
 
 /**
  * DOS2 Binary processing exception

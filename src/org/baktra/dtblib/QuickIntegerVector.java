@@ -1,10 +1,10 @@
-package org.baktra.xexlib;
+package org.baktra.dtblib;
 
 /**
  * Auto-growing storage for integers
  *
  */
-public class QuickMemoryStream {
+public class QuickIntegerVector {
 
     private int[] storage;
     private int pointer;
@@ -12,58 +12,58 @@ public class QuickMemoryStream {
     /**
      * Create new stream with default initial capacity
      */
-    public QuickMemoryStream() {
+    public QuickIntegerVector() {
         this(1_024);
     }
 
     /**
-     * Create new instruction stream
+     * Create new stream
      *
      * @param initialCapacity Initial capacity
      */
-    public QuickMemoryStream(int initialCapacity) {
+    public QuickIntegerVector(int initialCapacity) {
         storage = new int[initialCapacity];
         pointer = 0;
     }
 
     /**
-     * Add single instruction
+     * Add single oneInt
      *
-     * @param instruction
+     * @param oneInt
      */
-    public void add(int instruction) {
+    public void add(int oneInt) {
 
         /* Check capacity*/
         if (pointer == storage.length - 1) {
             increaseCapacity(512);
         }
-        /* Add instruction*/
-        storage[pointer] = instruction;
+        /* Add oneInt*/
+        storage[pointer] = oneInt;
         pointer++;
 
     }
 
     /**
-     * Add instructions
+     * Add intData
      *
-     * @param instructions Instructions
+     * @param intData Instructions
      */
-    public void add(int[] instructions) {
+    public void add(int[] intData) {
 
         /* Check capacity*/
         int free = storage.length - 1 - pointer;
-        if (free < instructions.length) {
-            increaseCapacity(instructions.length * 2);
+        if (free < intData.length) {
+            increaseCapacity(intData.length * 2);
         }
-        System.arraycopy(instructions, 0, storage, pointer, instructions.length);
-        pointer += instructions.length;
+        System.arraycopy(intData, 0, storage, pointer, intData.length);
+        pointer += intData.length;
     }
 
     /**
      *
      * @return
      */
-    public int[] getInstructions() {
+    public int[] toArray() {
         int[] instructions = new int[pointer];
         System.arraycopy(storage, 0, instructions, 0, instructions.length);
         return instructions;

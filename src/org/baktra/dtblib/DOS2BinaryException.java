@@ -1,4 +1,4 @@
-package org.baktra.xexlib;
+package org.baktra.dtblib;
 
 import java.io.File;
 
@@ -38,9 +38,8 @@ public class DOS2BinaryException extends Exception {
         }
         sb.append(" Offset: ");
         sb.append(String.format("%05d",offset));
-        sb.append(" [0x");
+        sb.append(" $");
         sb.append(String.format("%04X",offset));
-        sb.append(']');
         return sb.toString();
     }
 
@@ -69,9 +68,8 @@ public class DOS2BinaryException extends Exception {
         sb.append("<BR>");
         sb.append(" Offset: ");
         sb.append(String.format("%05d",offset));
-        sb.append(" [0x");
+        sb.append(" $");
         sb.append(String.format("%04X",offset));
-        sb.append(']');
         sb.append("</HTML>");
         return sb.toString();
     }

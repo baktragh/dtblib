@@ -1,4 +1,4 @@
-package org.baktra.xexlib;
+package org.baktra.dtblib;
 
 /**
  * Segment of a DOS 2 Binary File
@@ -23,6 +23,12 @@ public class Segment {
      */
     private final int[] data;
     
+    /**
+     * Decompressed data
+     */
+    private final int[] decompressedData;
+    private int compressionType;
+
     /**
      * Relative byte address of the segment (location in the file)
      */
@@ -55,7 +61,14 @@ public class Segment {
     private final boolean hasRunVector;
     private final boolean hasInitVector;
     
+    private final boolean isCompressed;
+
+    
     public Segment(int start, int[] data, int rba) {
+        this (start,data,rba,null,-1);
+    }
+    
+    public Segment(int start, int[] data, int rba, int[] decompressedData,int compressionType) {
 
         this.data = new int[data.length];
         System.arraycopy(data, 0, this.data, 0, data.length);
@@ -138,6 +151,9 @@ public class Segment {
             initAddress = UNKNOWN_ADDRESS;
         }
         
+        this.decompressedData=decompressedData;
+        this.isCompressed = (decompressedData!=null);
+        this.compressionType=compressionType;
 
     }
 
@@ -153,7 +169,12 @@ public class Segment {
 
         /*Has data portion ?*/
         if (hasNonVectorData()) {
+            if (isCompressed) {
+                sb.append("DATC");
+            }
+            else {
                 sb.append("DATA");
+            }
             sb.append('+');
             
         }
@@ -180,13 +201,13 @@ public class Segment {
         sb.append(' ');
 
         /*Address range*/
-        sb.append(String.format("%05d-%05d [%04X-%04X] ", firstAddress, lastAddress, firstAddress, lastAddress));
+        sb.append(String.format("%05d-%05d $%04X-$%04X ", firstAddress, lastAddress, firstAddress, lastAddress));
 
         if (hasFullRunVector) {
-            sb.append(String.format("R:%05d [%04X] ", runAddress, runAddress));
+            sb.append(String.format("R:%05d $%04X ", runAddress, runAddress));
         } else if (hasPartialRunVector) {
-            String p1 = (runAddressLo == UNKNOWN_ADDRESS) ? "?" : String.format("%03d [%02X]", runAddressLo, runAddressLo);
-            String p2 = (runAddressHi == UNKNOWN_ADDRESS) ? "?" : String.format("%03d [%02X]", runAddressHi, runAddressHi);
+            String p1 = (runAddressLo == UNKNOWN_ADDRESS) ? "?" : String.format("%03d $%02X", runAddressLo, runAddressLo);
+            String p2 = (runAddressHi == UNKNOWN_ADDRESS) ? "?" : String.format("%03d $%02X", runAddressHi, runAddressHi);
             sb.append("R(P): (");
             sb.append(p1);
             sb.append(',');
@@ -194,10 +215,10 @@ public class Segment {
             sb.append(')');
         }
         if (hasFullInitVector) {
-            sb.append(String.format("I:%05d [%04X] ", initAddress, initAddress));
+            sb.append(String.format("I:%05d $%04X ", initAddress, initAddress));
         } else if (hasPartialInitVector) {
-            String p1 = (initAddressLo == UNKNOWN_ADDRESS) ? "?" : String.format("%03d [%02X]", initAddressLo, initAddressLo);
-            String p2 = (initAddressHi == UNKNOWN_ADDRESS) ? "?" : String.format("%03d [%02X]", initAddressHi, initAddressHi);
+            String p1 = (initAddressLo == UNKNOWN_ADDRESS) ? "?" : String.format("%03d $%02X", initAddressLo, initAddressLo);
+            String p2 = (initAddressHi == UNKNOWN_ADDRESS) ? "?" : String.format("%03d $%02X", initAddressHi, initAddressHi);
             sb.append("I(P): (");
             sb.append(p1);
             sb.append(',');
@@ -205,6 +226,10 @@ public class Segment {
             sb.append(')');
         }
         
+        if (isCompressed) {
+            sb.append(String.format(" @%02X",compressionType));
+            
+        }
 
         return sb.toString();
     }
@@ -442,6 +467,9 @@ public class Segment {
         return hasRunVector;
     }
     
+    public boolean isCompressed() {
+        return isCompressed;
+    }
 
     static class SegmentPortionCrate {
 
@@ -452,6 +480,29 @@ public class Segment {
             this.address = address;
             this.portionData = new int[length];
         }
+    }
+    
+    public Segment[] splitUsingFirstSize(int firstSize) {
+        
+        int[] firstData = new int[firstSize];
+        int[] secondData = new int[data.length-firstSize];
+ 
+        for(int i=0;i<firstSize;i++) {
+            firstData[i]=data[i];
+        }
+        for(int i=0;i<secondData.length;i++) {
+            secondData[i]=data[firstSize+i];
+        }
+        
+        Segment firstSeg = new Segment(firstAddress,firstData,0);
+        Segment secondSeg = new Segment(firstAddress+firstSize,secondData,0);
+        
+        Segment[] splits = new Segment[2];
+        splits[0]=firstSeg;
+        splits[1]=secondSeg;
+        
+        return splits;
+        
     }
     
     public Segment[] splitUsingMaxSize(int maxSize) {
