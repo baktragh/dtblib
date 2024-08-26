@@ -98,17 +98,21 @@ public class DOS2Binary {
             }
         }
 
-        byte[] filebData;
+        QuickIntegerVector fData = new QuickIntegerVector(256);
+        int oneByte=-1;
 
         try (FileInputStream fis = new FileInputStream(filename);
                 BufferedInputStream bis = new BufferedInputStream(fis, 4096)) {
 
             /*Get all the data from the file*/
-            filebData = bis.readAllBytes();
+            while ((oneByte=bis.read())!=-1) {
+                fData.add(oneByte);
+            }
+            
         }
 
         /*Convert the data to array if integers*/
-        int[] fileData = DTBUtils.getAsIntArray(filebData);
+        int[] fileData = fData.toArray();
 
         analyze(fileData, true);
 
