@@ -1,6 +1,5 @@
 package org.baktra.dtblib;
 
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,12 +13,11 @@ import static org.baktra.dtblib.HybridDecompression.COMPRESS_APLIB;
 import static org.baktra.dtblib.HybridDecompression.COMPRESS_LZ4;
 import static org.baktra.dtblib.HybridDecompression.COMPRESS_ZX0;
 
-
 /**
  * DOS 2 Binary file.
  */
 public class DOS2Binary {
-    
+
     /**
      * File name
      */
@@ -39,31 +37,29 @@ public class DOS2Binary {
      * Total length of the binary file
      */
     private int fileLength;
-    
+
     /**
      * Allow to process compressed segments
      */
     private final CompressionHandling cprsHandling;
 
-    
-    
-    
-    
-    /** Create new instance
-     * 
+    /**
+     * Create new instance
+     *
      * @param fileSpec File name
      */
     public DOS2Binary(String fileSpec) {
-        this(fileSpec,CompressionHandling.REPORT_NOT_SUPPORTED);
+        this(fileSpec, CompressionHandling.REPORT_NOT_SUPPORTED);
     }
-    
-    /** Create new instance and specify compressed segment toleration
-     * 
+
+    /**
+     * Create new instance and specify compressed segment toleration
+     *
      * @param fileSpec File name
      * @param cprsHandling Indicates how to handle compressed segments
-     * 
+     *
      */
-     public DOS2Binary(String fileSpec,CompressionHandling cprsHandling) {
+    public DOS2Binary(String fileSpec, CompressionHandling cprsHandling) {
         filename = fileSpec;
         segmentList = new ArrayList<>();
         isAnalyzed = false;
@@ -102,10 +98,11 @@ public class DOS2Binary {
                 throw new DOS2BinaryException(filename, "Binary file is too long. File size exceeds 16 MB.", 0);
             }
         }
-        
+
         byte[] filebData;
-        
-        try (FileInputStream fis = new FileInputStream(filename); BufferedInputStream bis = new BufferedInputStream(fis, 4096)) {
+
+        try (FileInputStream fis = new FileInputStream(filename);
+                BufferedInputStream bis = new BufferedInputStream(fis, 4096)) {
 
             /*Get all the data from the file*/
             filebData = bis.readAllBytes();
@@ -152,22 +149,24 @@ public class DOS2Binary {
         int b2;
         int w1;
         int w2;
-        
+
         /*Begin analysis*/
-        /*If a header is required to be present, check for header (255 255)*/
+ /*If a header is required to be present, check for header (255 255)*/
         if (headerRequired == true) {
-            
-            if (fileLength<2) {
-                throw new DOS2BinaryException(filename,"The binary file is too short to have a header",0);
+
+            if (fileLength < 2) {
+                throw new DOS2BinaryException(filename, "The binary file is too short to have a header", 0);
             }
-            
+
             if (fileData[0] != 255 || fileData[1] != 255) {
                 throw new DOS2BinaryException(filename, "Binary file header not found. First two bytes do not have values of 255 $FF", 0);
             }
             pos = 2;
-        } else if (fileData[0] == 255 && fileData[1] == 255) {
+        }
+        else if (fileData[0] == 255 && fileData[1] == 255) {
             pos = 2;
-        } else {
+        }
+        else {
             pos = 0;
         }
 
@@ -193,12 +192,12 @@ public class DOS2Binary {
 
                 w2 = fileData[pos] + 256 * fileData[pos + 1];
                 pos += 2;
-                
+
                 /*Possible compressed segment*/
-                if (cprsHandling!=CompressionHandling.IGNORE_COMPRESSION && w2==0) {
-                    pos=processCompressed(fileData,pos,w1,lastSegPos);
-                    if (cprsHandling==CompressionHandling.REPORT_NOT_SUPPORTED) {
-                        throw new DOS2BinaryException(this.filename,"Compressed segments not supported by the selected function",lastSegPos);
+                if (cprsHandling != CompressionHandling.IGNORE_COMPRESSION && w2 == 0) {
+                    pos = processCompressed(fileData, pos, w1, lastSegPos);
+                    if (cprsHandling == CompressionHandling.REPORT_NOT_SUPPORTED) {
+                        throw new DOS2BinaryException(this.filename, "Compressed segments not supported by the selected function", lastSegPos);
                     }
                 }
                 /*Standard, non-compressed segment*/
@@ -220,7 +219,8 @@ public class DOS2Binary {
                     pos += newSegmentData.length;
                 }
 
-            } catch (ArrayIndexOutOfBoundsException ae) {
+            }
+            catch (ArrayIndexOutOfBoundsException ae) {
                 throw new DOS2BinaryException(filename, "Segment or segment header continues beyond end of binary file", pos);
             }
 
@@ -229,48 +229,50 @@ public class DOS2Binary {
         isAnalyzed = true;
 
     }
-    
+
     public DOS2Binary deriveFileWithMaxSegmentSize(int maxSegmentSize) throws Exception {
-        
+
         Iterator<Segment> oldSegmentIterator = this.getSegmentListIterator();
-        
+
         /*First check if there is at least one big segment*/
         boolean hasBigSegment = false;
-        while(oldSegmentIterator.hasNext()) {
+        while (oldSegmentIterator.hasNext()) {
             Segment s = oldSegmentIterator.next();
-            
-            if (s.getData().length>maxSegmentSize) {
-                hasBigSegment=true;
+
+            if (s.getData().length > maxSegmentSize) {
+                hasBigSegment = true;
             }
         }
-        
+
         /*If not, then we can just use the original binary file*/
-        if (hasBigSegment==false) return this;
-        
+        if (hasBigSegment == false) {
+            return this;
+        }
+
         /*Now we need to find all big segments and split them*/
         oldSegmentIterator = this.getSegmentListIterator();
-        
+
         QuickIntegerVector is = new QuickIntegerVector();
         is.add(255);
         is.add(255);
-        
-        while(oldSegmentIterator.hasNext()) {
+
+        while (oldSegmentIterator.hasNext()) {
             Segment s = oldSegmentIterator.next();
-            if (s.getData().length<maxSegmentSize) {
+            if (s.getData().length < maxSegmentSize) {
                 is.add(s.getFullData());
             }
             else {
                 Segment[] splitSegments = s.splitUsingMaxSize(maxSegmentSize);
-                for (Segment ns:splitSegments) {
+                for (Segment ns : splitSegments) {
                     is.add(ns.getFullData());
                 }
             }
         }
-        
+
         int[] newData = is.toArray();
         DOS2Binary newDtb = new DOS2Binary("");
-        
-        newDtb.analyzeFromData(newData,true);
+
+        newDtb.analyzeFromData(newData, true);
         return newDtb;
     }
 
@@ -298,16 +300,17 @@ public class DOS2Binary {
         if (segmentList.size() < 1) {
             throw new DOS2BinaryProcessingException("Unable to create monolithic binary file. The input binary file has no segments.");
         }
-        
+
         /*Validate the extra code address*/
         int extraCodeAddress = -1;
-        
+
         if (extra == true) {
-            
+
             /*Try to get decimal number*/
             try {
                 extraCodeAddress = Integer.parseInt(extraAdress);
-            } catch (NumberFormatException e) {
+            }
+            catch (NumberFormatException e) {
                 extraCodeAddress = -1;
             }
             /*Check range*/
@@ -315,7 +318,7 @@ public class DOS2Binary {
                 throw new DOS2BinaryProcessingException(("Unable to create monolithic binary file. Adddress of the code that replaces INIT segments is not valid (0-65535)"));
             }
             /*Check if the extra code fits*/
-            if (extraCodeAddress>65_536-getExtraCodeForMergeLength()) {
+            if (extraCodeAddress > 65_536 - getExtraCodeForMergeLength()) {
                 throw new DOS2BinaryProcessingException("Unable to create monolithic binary file. Code that replaces INIT segments would span beyond address of 65535");
             }
 
@@ -413,7 +416,8 @@ public class DOS2Binary {
                 pos++;
             }
 
-        } /*Only browse for possible run segments*/ else {
+        }
+        /*Only browse for possible run segments*/ else {
             Iterator<Segment> it = segmentList.iterator();
             while (it.hasNext()) {
                 Segment seg = it.next();
@@ -489,8 +493,6 @@ public class DOS2Binary {
             raf.writeByte(finalRunVector % 256);
             raf.writeByte(finalRunVector / 256);
         }
-
-        
 
     }
 
@@ -574,7 +576,7 @@ public class DOS2Binary {
         retVal[2] = getSegmentWithoutVectorCount();
         /*Segments with vector*/
         retVal[3] = getSegmentWithVectorCount();
-        
+
         return retVal;
     }
 
@@ -638,12 +640,12 @@ public class DOS2Binary {
         }
         return false;
     }
-    
+
     public boolean hasCompressedSegment() {
         Iterator<Segment> it = segmentList.iterator();
         while (it.hasNext()) {
             Segment seg = it.next();
-            if (seg.isCompressed()==true) {
+            if (seg.isCompressed() == true) {
                 return true;
             }
         }
@@ -671,9 +673,11 @@ public class DOS2Binary {
         if (segmentCount > 2 || hasInitVector()) {
             return false;
         }
-        
+
         /*Compression is not tolerated*/
-        if (hasCompressedSegment()) return false;
+        if (hasCompressedSegment()) {
+            return false;
+        }
 
         /*One segment is always OK, unless there is a partial RUN vector*/
         Iterator<Segment> segIter = segmentList.iterator();
@@ -710,6 +714,62 @@ public class DOS2Binary {
         }
 
         /*All conditions met*/
+        return true;
+
+    }
+
+    public boolean isOneSegmentWithInit() {
+
+        /* Conditions
+               Exactly 1 segment with non-vector data
+               Maximum 1 segment with INIT vector. Must be full
+               Maximum 1 segment with RUN vector. Must be full
+         */
+        int numWithNonVectorData = 0;
+        int numInitVectors = 0;
+        int numRunVectors = 0;
+        int numFullInitVectors = 0;
+        int numFullRunVectors = 0;
+
+        Iterator<Segment> segIter = getSegmentListIterator();
+
+        /*Count segments and vectors*/
+        while (segIter.hasNext()) {
+            Segment seg = segIter.next();
+
+            if (seg.hasNonVectorData()) {
+                numWithNonVectorData++;
+            }
+            if (seg.hasInitVector()) {
+                numInitVectors++;
+            }
+            if (seg.hasFullInitVector()) {
+                numFullInitVectors++;
+            }
+            if (seg.hasRunVector()) {
+                numRunVectors++;
+            }
+            if (seg.hasFullRunVector()) {
+                numFullRunVectors++;
+            }
+
+        }
+
+        /*More non-vector data or no non-vector data*/
+        if (numWithNonVectorData != 1) {
+            return false;
+        }
+
+        /*Problem with INIT vectors. More than one or one partial*/
+        if (numInitVectors > 1 || (numInitVectors == 1 && numFullInitVectors == 0)) {
+            return false;
+        }
+
+        /*Problem with RUN vectors. More than one or one partial*/
+        if (numRunVectors > 1 || (numRunVectors == 1 && numFullRunVectors == 0)) {
+            return false;
+        }
+
         return true;
 
     }
@@ -780,13 +840,13 @@ public class DOS2Binary {
         StringBuilder sb = new StringBuilder(24);
         sb.append("Segment with negative size found ");
         sb.append('(');
-        sb.append(String.format("%05d",w1));
+        sb.append(String.format("%05d", w1));
         sb.append('-');
-        sb.append(String.format("%05d",w2));
+        sb.append(String.format("%05d", w2));
         sb.append(" [");
-        sb.append(String.format("%04X",w1));
+        sb.append(String.format("%04X", w1));
         sb.append('-');
-        sb.append(String.format("%04X",w2));
+        sb.append(String.format("%04X", w2));
         sb.append("])");
 
         return sb.toString();
@@ -813,8 +873,10 @@ public class DOS2Binary {
         if (it.hasNext()) {
             seg = it.next();
         }
-        
-        if (seg==null) return;
+
+        if (seg == null) {
+            return;
+        }
 
         int[] segData = new int[2];
         segData[0] = seg.getFirstAddress() % 256;
@@ -824,7 +886,6 @@ public class DOS2Binary {
         this.segmentList.add(runVectorSegment);
 
     }
-
 
     /**
      * Get information required to perform conversion of monolithic binary file
@@ -853,18 +914,21 @@ public class DOS2Binary {
             crate.data = s1.getData();
             if (s1.hasRunVector() == true) {
                 crate.runAddress = s1.getRunVector();
-            } else {
+            }
+            else {
                 crate.runAddress = s1.getFirstAddress();
             }
             crate.loadAddress = s1.getFirstAddress();
-        } /*With two segments*/ else {
+        }
+        /*With two segments*/ else {
             Segment s2 = segIter.next();
 
             if (s1.hasNonVectorData() == true) {
                 crate.data = s1.getData();
                 crate.runAddress = s2.getRunVector();
                 crate.loadAddress = s1.getFirstAddress();
-            } else {
+            }
+            else {
                 crate.data = s2.getData();
                 crate.runAddress = s1.getRunVector();
                 crate.loadAddress = s2.getFirstAddress();
@@ -876,13 +940,12 @@ public class DOS2Binary {
 
     }
 
-    
-    private int processCompressed(int[] fileData, int pos, int firstAddress,int rba) throws DOS2BinaryException {
+    private int processCompressed(int[] fileData, int pos, int firstAddress, int rba) throws DOS2BinaryException {
 
         /*First, check the compression type*/
         int cmprType = fileData[pos];
         pos++;
-        
+
         switch (cmprType) {
             case COMPRESS_LZ4: {
                 HybridDecompression hc = new HybridDecompression();
@@ -907,7 +970,7 @@ public class DOS2Binary {
                 throw new DOS2BinaryException(filename, String.format("Unsupported compression type $%02X", cmprType), pos);
             }
         }
-        
+
     }
 
     public int[] getAllData() {
@@ -921,16 +984,15 @@ public class DOS2Binary {
         }
         return is.toArray();
     }
-    
-    
+
     public List<ArrayList<Segment>> getInitSlicedSegmentBunches() {
-        
+
         ArrayList<ArrayList<Segment>> bunches = new ArrayList<>();
         ArrayList<Segment> currentBunch = new ArrayList<>();
-        
+
         Iterator<Segment> segmentIterator = this.getSegmentListIterator();
-        
-        while(segmentIterator.hasNext()) {
+
+        while (segmentIterator.hasNext()) {
             Segment s = segmentIterator.next();
             if (s.hasInitVector()) {
                 currentBunch.add(s);
@@ -941,43 +1003,44 @@ public class DOS2Binary {
                 currentBunch.add(s);
             }
         }
-        
+
         if (!currentBunch.isEmpty()) {
             bunches.add(currentBunch);
         }
-        
+
         return bunches;
     }
-    
+
     public int getNormalizedRunAddress() throws DOS2BinaryProcessingException {
-        
-        if (this.segmentList.isEmpty()) throw new DOS2BinaryProcessingException("Unable to determine normalized RUN address. The file has no segments");
-        int address=-1;
-        
-        boolean firstUsed=false;
-        for (Segment s:segmentList) {
+
+        if (this.segmentList.isEmpty()) {
+            throw new DOS2BinaryProcessingException("Unable to determine normalized RUN address. The file has no segments");
+        }
+        int address = -1;
+
+        boolean firstUsed = false;
+        for (Segment s : segmentList) {
             if (!firstUsed && s.hasNonVectorData()) {
-                address=s.getFirstAddress();
-                firstUsed=true;
+                address = s.getFirstAddress();
+                firstUsed = true;
             }
             if (s.hasFullRunVector()) {
-                address=s.getRunVector();
+                address = s.getRunVector();
             }
         }
-        
-        if (address==-1) {
+
+        if (address == -1) {
             throw new DOS2BinaryProcessingException("Unable to determine normalized RUN address. None of the segments can be used to determine it.");
         }
         return address;
-        
+
     }
-    
-    
+
     /**
      *
      */
     public static class MonolithicConversionInfoCrate {
-        
+
         /**
          * Data
          */
@@ -991,21 +1054,11 @@ public class DOS2Binary {
          */
         public int loadAddress;
     }
+
     public enum CompressionHandling {
         IGNORE_COMPRESSION,
         REPORT_NOT_SUPPORTED,
         FULL_SUPPORT
     }
-    
-    
-    
-    
-    
-    
-    
-    
 
 }
-
-
-
