@@ -3,7 +3,7 @@ package org.baktra.dtblib;
 import java.io.File;
 
 /**
- * Incorrect DOS 2 Binary format
+ * Exception thrown when DOS 2 Binary File is corrupt
  */
 public class DOS2BinaryException extends Exception {
 
@@ -11,7 +11,17 @@ public class DOS2BinaryException extends Exception {
     private final int offset;
     private final String filename;
     private final boolean isAlien;
+    
+    /**Error message prefix*/
+    private static final String MSG_PREFIX = "Binary file error";
 
+    /**Create a new DOS2BinaryException
+     * 
+     * @param filename Input file name
+     * @param message Message describing the problem
+     * @param offset Offset when the problem was found
+     * @param isAlien When true, indicates the input file is not a binary file at all
+     */
     public DOS2BinaryException(String filename, String message, int offset, boolean isAlien) {
         this.message = message;
         this.offset = offset;
@@ -19,7 +29,13 @@ public class DOS2BinaryException extends Exception {
         this.filename = f.getName();
         this.isAlien = isAlien;
     }
-
+    
+    /** Create a new DOS2BinaryException
+     * 
+     * @param filename Input file name
+     * @param message Message describing the problem
+     * @param offset Offset when the problem was found
+     */
     public DOS2BinaryException(String filename, String message, int offset) {
         this(filename, message, offset, false);
     }
@@ -33,16 +49,21 @@ public class DOS2BinaryException extends Exception {
     public String toString() {
         return toString(true);
     }
-
+    
+    /**
+     * Return string representation of the exception
+     * @param full When true, the string includes the message prefix
+     * @return String representation of the exception
+     */
     public String toString(boolean full) {
         if (full) {
-            return getClass().getName() + " " + getMessageString(true);
+            return MSG_PREFIX+": " + getMessageString(true);
         }
         else {
             return getMessageString(false);
         }
     }
-
+    
     private String getMessageString(boolean full) {
         StringBuilder sb = new StringBuilder();
 
@@ -61,22 +82,31 @@ public class DOS2BinaryException extends Exception {
         sb.append(Integer.toHexString(offset).toUpperCase());
         return sb.toString();
     }
-
+    
+    /**
+     * Get message formatted as HTML
+     * @return String with HTML formatted message
+     */
     public String getFormattedMessage() {
         return getFormattedMessage(null);
     }
 
-    public String getFormattedMessage(String extraHeader) {
+    /**
+     * Get message formatted as HTML with a custom header
+     * @param customHeader Custom header
+     * @return String with HTML formatted message and a custom header
+     */
+    public String getFormattedMessage(String customHeader) {
         StringBuilder sb = new StringBuilder();
         sb.append("<HTML>");
 
-        if (extraHeader != null) {
+        if (customHeader != null) {
             sb.append("<b>");
-            sb.append(extraHeader);
+            sb.append(customHeader);
             sb.append("</b><BR>");
         }
 
-        sb.append(getClass().getName());
+        sb.append(MSG_PREFIX);
         sb.append(": ");
         sb.append(filename != null ? filename : "<No file>");
         sb.append("<BR>");
@@ -92,7 +122,11 @@ public class DOS2BinaryException extends Exception {
         sb.append("</HTML>");
         return sb.toString();
     }
-
+    
+    /**
+     * Returns true if the exception represents a file that is not a binary file
+     * @return True when not a binary file
+     */
     public boolean isAlien() {
         return isAlien;
     }

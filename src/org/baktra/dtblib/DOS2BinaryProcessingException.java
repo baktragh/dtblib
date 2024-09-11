@@ -11,7 +11,7 @@ public class DOS2BinaryProcessingException extends Exception {
     private final String message;
 
     /**
-     *
+     * Create new DOS2BinaryProcessingException
      * @param message
      */
     public DOS2BinaryProcessingException(String message) {
@@ -19,23 +19,16 @@ public class DOS2BinaryProcessingException extends Exception {
 
     }
 
-    /**
-     * Get message
-     *
-     * @return Message
-     */
+   
     @Override
     public String getMessage() {
         return getMessageString();
     }
 
-    /**
-     *
-     * @return
-     */
+   
     @Override
     public String toString() {
-        return getClass().getName() + " " + getMessageString();
+        return "Binary file processing error: " + " " + getMessageString();
     }
 
     private String getMessageString() {
