@@ -81,6 +81,17 @@ public class DOS2Binary {
 
         return s;
     }
+    
+    public String[] getListingWithRBAs() {
+         /*Array of the strings*/
+        String[] s = new String[segmentList.size()];
+
+        for (int i = 0; i < segmentList.size(); i++) {
+            s[i] = segmentList.get(i).toStringWithRBAs();
+        }
+
+        return s;
+    }
 
     /**
      *

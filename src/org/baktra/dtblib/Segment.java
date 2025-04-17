@@ -233,11 +233,12 @@ public class Segment {
 
         return sb.toString();
     }
+    
+    public String toStringWithRBAs() {
+        return toString()+String.format("RBA: %05d $%04X - %05d $%04X",startRBA,startRBA,endRBA,endRBA);
+    }
 
-    /**
-     *
-     * @return
-     */
+    
     public int[] getFullData() {
 
         int[] retArray = new int[data.length + 4];
