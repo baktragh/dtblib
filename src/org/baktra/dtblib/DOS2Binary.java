@@ -48,7 +48,7 @@ public class DOS2Binary {
      * @param fileSpec File name
      */
     public DOS2Binary(String fileSpec) {
-        this(fileSpec, CompressionHandling.REPORT_NOT_SUPPORTED);
+        this(fileSpec, CompressionHandling.IGNORE_COMPRESSION);
     }
 
     /**
