@@ -1,4 +1,4 @@
-package org.baktra.dtblib;
+package org.baktra.aelib;
 
 /**
  * Auto-growing storage for integers

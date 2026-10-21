@@ -1,4 +1,4 @@
-package org.baktra.dtblib;
+package org.baktra.aelib;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -8,14 +8,14 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import static org.baktra.dtblib.HybridDecompression.COMPRESS_APLIB;
-import static org.baktra.dtblib.HybridDecompression.COMPRESS_LZ4;
-import static org.baktra.dtblib.HybridDecompression.COMPRESS_ZX0;
+import static org.baktra.aelib.HybridDecompression.COMPRESS_APLIB;
+import static org.baktra.aelib.HybridDecompression.COMPRESS_LZ4;
+import static org.baktra.aelib.HybridDecompression.COMPRESS_ZX0;
 
 /**
- * DOS 2 Binary file.
+ * DOS 2 Atari executable.
  */
-public class DOS2Binary {
+public class AtariExecutable {
 
     /**
      * File name
@@ -33,7 +33,7 @@ public class DOS2Binary {
     private boolean isAnalyzed;
 
     /**
-     * Total length of the binary file
+     * Total length of the Atari executable
      */
     private int fileLength;
 
@@ -47,7 +47,7 @@ public class DOS2Binary {
      *
      * @param fileSpec File name
      */
-    public DOS2Binary(String fileSpec) {
+    public AtariExecutable(String fileSpec) {
         this(fileSpec, CompressionHandling.IGNORE_COMPRESSION);
     }
 
@@ -58,7 +58,7 @@ public class DOS2Binary {
      * @param cprsHandling Indicates how to handle compressed segments
      *
      */
-    public DOS2Binary(String fileSpec, CompressionHandling cprsHandling) {
+    public AtariExecutable(String fileSpec, CompressionHandling cprsHandling) {
         filename = fileSpec;
         segmentList = new ArrayList<>();
         isAnalyzed = false;
@@ -96,16 +96,16 @@ public class DOS2Binary {
     /**
      *
      * @throws IOException
-     * @throws DOS2BinaryException
+     * @throws AtariExecutableException
      */
-    public void analyzeFromFile() throws IOException, DOS2BinaryException {
+    public void analyzeFromFile() throws IOException, AtariExecutableException {
 
         /*Check size. Maximum size is up to 16 MB*/
         File f = new File(filename);
         if (f.exists() && f.isFile()) {
             long l = f.length();
             if (l > 16 * 1_024 * 1_024) {
-                throw new DOS2BinaryException(filename, "Binary file is too long. File size exceeds 16 MB.", 0);
+                throw new AtariExecutableException(filename, "Atari executable is too long. File size exceeds 16 MB.", 0);
             }
         }
 
@@ -133,9 +133,9 @@ public class DOS2Binary {
      *
      * @param fileData
      * @throws IOException
-     * @throws DOS2BinaryException
+     * @throws AtariExecutableException
      */
-    public void analyzeFromData(int[] fileData) throws IOException, DOS2BinaryException {
+    public void analyzeFromData(int[] fileData) throws IOException, AtariExecutableException {
         analyzeFromData(fileData, true);
     }
 
@@ -144,18 +144,18 @@ public class DOS2Binary {
      * @param fileData
      * @param headerRequired
      * @throws IOException
-     * @throws DOS2BinaryException
+     * @throws AtariExecutableException
      */
-    public void analyzeFromData(int[] fileData, boolean headerRequired) throws IOException, DOS2BinaryException {
+    public void analyzeFromData(int[] fileData, boolean headerRequired) throws IOException, AtariExecutableException {
         analyze(fileData, headerRequired);
     }
 
     /**
-     * Analyze binary file. Populate list of segments
+     * Analyze Atari executable. Populate list of segments
      *
      * @throws IOException,DOS2BinaryException
      */
-    private void analyze(int[] fileData, boolean headerRequired) throws IOException, DOS2BinaryException {
+    private void analyze(int[] fileData, boolean headerRequired) throws IOException, AtariExecutableException {
 
         int pos = 0;
         fileLength = fileData.length;
@@ -169,11 +169,11 @@ public class DOS2Binary {
         if (headerRequired == true) {
 
             if (fileLength < 2) {
-                throw new DOS2BinaryException(filename, "The binary file is too short to have a header", 0);
+                throw new AtariExecutableException(filename, "The Atari executable is too short to have a header", 0);
             }
 
             if (fileData[0] != 255 || fileData[1] != 255) {
-                throw new DOS2BinaryException(filename, "Binary file header not found. First two bytes do not have values of 255 $FF", 0);
+                throw new AtariExecutableException(filename, "Atari executable header not found. First two bytes do not have values of 255 $FF", 0);
             }
             pos = 2;
         }
@@ -211,14 +211,14 @@ public class DOS2Binary {
                 if (cprsHandling != CompressionHandling.IGNORE_COMPRESSION && w2 == 0) {
                     pos = processCompressed(fileData, pos, w1, lastSegPos);
                     if (cprsHandling == CompressionHandling.REPORT_NOT_SUPPORTED) {
-                        throw new DOS2BinaryException(this.filename, "Compressed segments not supported by the selected function", lastSegPos);
+                        throw new AtariExecutableException(this.filename, "Compressed segments not supported by the selected function", lastSegPos);
                     }
                 }
                 /*Standard, non-compressed segment*/
                 else {
                     /*Check for negative segment size*/
                     if (w2 < w1) {
-                        throw new DOS2BinaryException(filename, getNegativeSegmentSizeMessage(w1, w2), lastSegPos);
+                        throw new AtariExecutableException(filename, getNegativeSegmentSizeMessage(w1, w2), lastSegPos);
                     }
 
                     /*Create new segment*/
@@ -235,7 +235,7 @@ public class DOS2Binary {
 
             }
             catch (ArrayIndexOutOfBoundsException ae) {
-                throw new DOS2BinaryException(filename, "Segment or segment header continues beyond end of binary file", pos);
+                throw new AtariExecutableException(filename, "Segment or segment header continues beyond end of Atari executable", pos);
             }
 
         }/*End of main loop*/
@@ -244,7 +244,7 @@ public class DOS2Binary {
 
     }
 
-    public DOS2Binary deriveFileWithMaxSegmentSize(int maxSegmentSize) throws Exception {
+    public AtariExecutable deriveFileWithMaxSegmentSize(int maxSegmentSize) throws Exception {
 
         Iterator<Segment> oldSegmentIterator = this.getSegmentListIterator();
 
@@ -258,7 +258,7 @@ public class DOS2Binary {
             }
         }
 
-        /*If not, then we can just use the original binary file*/
+        /*If not, then we can just use the original Atari executable*/
         if (hasBigSegment == false) {
             return this;
         }
@@ -284,7 +284,7 @@ public class DOS2Binary {
         }
 
         int[] newData = is.toArray();
-        DOS2Binary newDtb = new DOS2Binary("");
+        AtariExecutable newDtb = new AtariExecutable("");
 
         newDtb.analyzeFromData(newData, true);
         return newDtb;
@@ -300,20 +300,20 @@ public class DOS2Binary {
     }
 
     /**
-     * Create monolithic binary file)
+     * Create monolithic Atari executable)
      *
      * @param outname Output file
      * @param extraAdress Address of the jump segment emulation code
      * @param extra Generate jump segment emulation code
-     * @throws org.baktra.dtblib.DOS2BinaryProcessingException
+     * @throws org.baktra.aelib.AtariExecutableProcessingException
      * @throws java.io.IOException
      * @throws NumberFormatException
      */
-    public void createMonolithicBinary(String outname, String extraAdress, boolean extra) throws DOS2BinaryProcessingException, IOException, NumberFormatException {
+    public void createMonolithicBinary(String outname, String extraAdress, boolean extra) throws AtariExecutableProcessingException, IOException, NumberFormatException {
 
         /*Check if there is at least one segment*/
         if (segmentList.size() < 1) {
-            throw new DOS2BinaryProcessingException("Unable to create monolithic binary file. The input binary file has no segments.");
+            throw new AtariExecutableProcessingException("Unable to create monolithic Atari executable. The input Atari executable has no segments.");
         }
 
         /*Validate the extra code address*/
@@ -330,11 +330,11 @@ public class DOS2Binary {
             }
             /*Check range*/
             if (extraCodeAddress < 0 || extraCodeAddress > 65_535) {
-                throw new DOS2BinaryProcessingException(("Unable to create monolithic binary file. Adddress of the code that replaces INIT segments is not valid (0-65535)"));
+                throw new AtariExecutableProcessingException(("Unable to create monolithic Atari executable. Adddress of the code that replaces INIT segments is not valid (0-65535)"));
             }
             /*Check if the extra code fits*/
             if (extraCodeAddress > 65_536 - getExtraCodeForMergeLength()) {
-                throw new DOS2BinaryProcessingException("Unable to create monolithic binary file. Code that replaces INIT segments would span beyond address of 65535");
+                throw new AtariExecutableProcessingException("Unable to create monolithic Atari executable. Code that replaces INIT segments would span beyond address of 65535");
             }
 
         }
@@ -366,7 +366,7 @@ public class DOS2Binary {
                 for (int k = 0; k < length; k++) {
                     /*Check for overlap*/
                     if (fileData[firstAddress + k] != -1) {
-                        throw new DOS2BinaryProcessingException("Unable to create monolithic binary file. Segments of the binary file overlap. Segment: " + seg.toString());
+                        throw new AtariExecutableProcessingException("Unable to create monolithic Atari executable. Segments of the Atari executable overlap. Segment: " + seg.toString());
                     }
                     /*Copy data*/
                     fileData[firstAddress + k] = segData[k];
@@ -382,7 +382,7 @@ public class DOS2Binary {
                 if (portion != null) {
                     for (int j = 0; j < portion.portionData.length; j++) {
                         if (fileData[portion.address + j] != -1) {
-                            throw new DOS2BinaryProcessingException("Unable to create monolithic binary file. Segments of the binary file overlap. Segment: " + seg.toString());
+                            throw new AtariExecutableProcessingException("Unable to create monolithic Atari executable. Segments of the Atari executable overlap. Segment: " + seg.toString());
                         }
                         fileData[portion.address + j] = portion.portionData[j];
                     }
@@ -456,7 +456,7 @@ public class DOS2Binary {
         }
 
         if (fa == -1 || la == -1) {
-            throw new DOS2BinaryProcessingException("Unable to create monolithic binary file. Internal error when determining lowest and highest address.");
+            throw new AtariExecutableProcessingException("Unable to create monolithic Atari executable. Internal error when determining lowest and highest address.");
         }
 
         /*Untouched addresses must be zeroed*/
@@ -466,7 +466,7 @@ public class DOS2Binary {
             }
         }
 
-        /*Writing monolithic binary file*/
+        /*Writing monolithic Atari executable*/
         try (RandomAccessFile raf = new RandomAccessFile(outname, "rw")) {
             raf.setLength(0);
 
@@ -665,9 +665,9 @@ public class DOS2Binary {
     }
 
     /**
-     * Determine whether the binary file is monolithic
+     * Determine whether the Atari executable is monolithic
      *
-     * @return True when the binary file is monolithic
+     * @return True when the Atari executable is monolithic
      */
     public boolean isMonolithic() {
 
@@ -776,11 +776,11 @@ public class DOS2Binary {
     }
 
     /**
-     * Determine whether the binary file is compatible. The compatibility check
+     * Determine whether the Atari executable is compatible. The compatibility check
      * is performed by a visitor class
      *
      * @param ccVisitor Visitor class
-     * @return True if the binary file is compatible. False otherwise.
+     * @return True if the Atari executable is compatible. False otherwise.
      */
     public boolean isCompatible(CompatibilityCheckVisitor ccVisitor) {
         return ccVisitor.isCompatible(this);
@@ -886,16 +886,16 @@ public class DOS2Binary {
     }
 
     /**
-     * Get information required to perform conversion of monolithic binary file
+     * Get information required to perform conversion of monolithic Atari executable
      *
      * @return MonolithicConversionInfoCrate with information
-     * @throws DOS2BinaryProcessingException
+     * @throws AtariExecutableProcessingException
      */
-    public MonolithicConversionInfoCrate getMonolithicBinaryFileConversionInfo() throws DOS2BinaryProcessingException {
+    public MonolithicConversionInfoCrate getMonolithicBinaryFileConversionInfo() throws AtariExecutableProcessingException {
 
         /* Check if the file is monolithic*/
         if (!isMonolithic()) {
-            throw new DOS2BinaryProcessingException(("Internal error: getMonolithichBinaryFileConversionInfo() called on non-monolithic binary file"));
+            throw new AtariExecutableProcessingException(("Internal error: getMonolithichBinaryFileConversionInfo() called on non-monolithic Atari executable"));
         }
 
         /*Create crate*/
@@ -938,7 +938,7 @@ public class DOS2Binary {
 
     }
 
-    private int processCompressed(int[] fileData, int pos, int firstAddress, int rba) throws DOS2BinaryException {
+    private int processCompressed(int[] fileData, int pos, int firstAddress, int rba) throws AtariExecutableException {
 
         /*First, check the compression type*/
         int cmprType = fileData[pos];
@@ -965,7 +965,7 @@ public class DOS2Binary {
                 return rc.newPosition;
             }
             default: {
-                throw new DOS2BinaryException(filename, String.format("Unsupported compression type $%02X", cmprType), pos);
+                throw new AtariExecutableException(filename, String.format("Unsupported compression type $%02X", cmprType), pos);
             }
         }
 
@@ -1009,10 +1009,10 @@ public class DOS2Binary {
         return bunches;
     }
 
-    public int getNormalizedRunAddress() throws DOS2BinaryProcessingException {
+    public int getNormalizedRunAddress() throws AtariExecutableProcessingException {
 
         if (this.segmentList.isEmpty()) {
-            throw new DOS2BinaryProcessingException("Unable to determine normalized RUN address. The file has no segments");
+            throw new AtariExecutableProcessingException("Unable to determine normalized RUN address. The file has no segments");
         }
         int address = -1;
 
@@ -1028,7 +1028,7 @@ public class DOS2Binary {
         }
 
         if (address == -1) {
-            throw new DOS2BinaryProcessingException("Unable to determine normalized RUN address. None of the segments can be used to determine it.");
+            throw new AtariExecutableProcessingException("Unable to determine normalized RUN address. None of the segments can be used to determine it.");
         }
         return address;
 

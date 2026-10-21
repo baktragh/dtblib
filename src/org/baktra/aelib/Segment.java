@@ -1,4 +1,4 @@
-package org.baktra.dtblib;
+package org.baktra.aelib;
 
 /**
  * Segment of a DOS 2 Binary File
@@ -329,11 +329,11 @@ public class Segment {
     /**
      *
      * @return
-     * @throws DOS2BinaryProcessingException
+     * @throws AtariExecutableProcessingException
      */
-    public int getRunVector() throws DOS2BinaryProcessingException {
+    public int getRunVector() throws AtariExecutableProcessingException {
         if (runAddress == UNKNOWN_ADDRESS) {
-            throw new DOS2BinaryProcessingException(("Internal Error: getRunVector() call on Segment that has no RUN vector"));
+            throw new AtariExecutableProcessingException(("Internal Error: getRunVector() call on Segment that has no RUN vector"));
         }
         return runAddress;
     }
@@ -341,11 +341,11 @@ public class Segment {
     /**
      *
      * @return
-     * @throws DOS2BinaryProcessingException
+     * @throws AtariExecutableProcessingException
      */
-    public int getInitVector() throws DOS2BinaryProcessingException {
+    public int getInitVector() throws AtariExecutableProcessingException {
         if (initAddress == UNKNOWN_ADDRESS) {
-            throw new DOS2BinaryProcessingException(("Internal Error: getInitVector() call on Segment that has no INIT vector"));
+            throw new AtariExecutableProcessingException(("Internal Error: getInitVector() call on Segment that has no INIT vector"));
         }
         return initAddress;
     }
@@ -408,7 +408,7 @@ public class Segment {
         return ((firstAddress == 736 && lastAddress == 739) || (firstAddress == 737 && lastAddress == 738));
     }
 
-    SegmentPortionCrate[] getNonVectorPortions() throws DOS2BinaryProcessingException {
+    SegmentPortionCrate[] getNonVectorPortions() throws AtariExecutableProcessingException {
 
         int fa = -1;
         int la = -1;
@@ -426,7 +426,7 @@ public class Segment {
         }
 
         if (fa == -1 || la == -1) {
-            throw new DOS2BinaryProcessingException("Internal error: getNonJumpVectorPortions() call on pure DATA segment");
+            throw new AtariExecutableProcessingException("Internal error: getNonJumpVectorPortions() call on pure DATA segment");
         }
 
         int befLength = fa - getFirstAddress();

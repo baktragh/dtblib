@@ -1,9 +1,9 @@
-package org.baktra.dtblib;
+package org.baktra.aelib;
 
 /**
  * DOS2 Binary processing exception
  */
-public class DOS2BinaryProcessingException extends Exception {
+public class AtariExecutableProcessingException extends Exception {
 
     /**
      * Message
@@ -14,7 +14,7 @@ public class DOS2BinaryProcessingException extends Exception {
      * Create new DOS2BinaryProcessingException
      * @param message
      */
-    public DOS2BinaryProcessingException(String message) {
+    public AtariExecutableProcessingException(String message) {
         this.message = message;
 
     }
@@ -28,7 +28,7 @@ public class DOS2BinaryProcessingException extends Exception {
    
     @Override
     public String toString() {
-        return "Binary file processing error: " + " " + getMessageString();
+        return "Atari executable processing error: " + " " + getMessageString();
     }
 
     private String getMessageString() {

@@ -1,4 +1,4 @@
-package org.baktra.dtblib;
+package org.baktra.aelib;
 import java.util.logging.Level;
 
 
@@ -21,7 +21,7 @@ public class HybridDecompression {
     protected static final int COMPRESS_ZX0=2;
     
 
-    protected ResultCrate processLZ4(int[] fileData, int pos, int firstAddress, int rba, String filename) throws DOS2BinaryException {
+    protected ResultCrate processLZ4(int[] fileData, int pos, int firstAddress, int rba, String filename) throws AtariExecutableException {
 
         int originalPos = pos;
 
@@ -95,15 +95,15 @@ public class HybridDecompression {
             return new ResultCrate(pos, s);
 
         } catch (ArrayIndexOutOfBoundsException e) {
-            throw new DOS2BinaryException(filename, "Compressed data continue beyond end of file", pos);
+            throw new AtariExecutableException(filename, "Compressed data continue beyond end of file", pos);
         } catch (Exception e2) {
-            throw new DOS2BinaryException(filename, "Decompression failed", pos);
+            throw new AtariExecutableException(filename, "Decompression failed", pos);
 
         }
 
     }
 
-    protected ResultCrate processZX0(int[] fileData, int pos, int firstAddress, int rba, String filename) throws DOS2BinaryException {
+    protected ResultCrate processZX0(int[] fileData, int pos, int firstAddress, int rba, String filename) throws AtariExecutableException {
 
         try {
             int originalPos = pos;
@@ -192,7 +192,7 @@ public class HybridDecompression {
             return new ResultCrate(pos, s);
 
         } catch (Exception e2) {
-            throw new DOS2BinaryException(filename, "Decompression failed", pos);
+            throw new AtariExecutableException(filename, "Decompression failed", pos);
 
         }
     }
@@ -269,7 +269,7 @@ public class HybridDecompression {
     private final int ZX0_COPY_FROM_NEW = 3;
     private final int ZX0_EOF = 4;
 
-    ResultCrate processAPlib(int[] fileData, int pos, int firstAddress, int rba, String filename) throws DOS2BinaryException {
+    ResultCrate processAPlib(int[] fileData, int pos, int firstAddress, int rba, String filename) throws AtariExecutableException {
 
         int originalPos = pos;
 
@@ -282,7 +282,7 @@ public class HybridDecompression {
             Segment s = new Segment(firstAddress, rawData, rba, new int[0],COMPRESS_APLIB);
             return new ResultCrate(newPos, s);
         } catch (Exception e2) {
-            throw new DOS2BinaryException(filename, "Decompression failed", pos);
+            throw new AtariExecutableException(filename, "Decompression failed", pos);
         }
 
     }

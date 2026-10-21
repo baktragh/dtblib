@@ -1,4 +1,4 @@
-package org.baktra.dtblib;
+package org.baktra.aelib;
 
 /**
  *
@@ -11,6 +11,6 @@ public interface CompatibilityCheckVisitor {
      * @param dtb
      * @return
      */
-    public boolean isCompatible(DOS2Binary dtb);
+    public boolean isCompatible(AtariExecutable dtb);
 
 }

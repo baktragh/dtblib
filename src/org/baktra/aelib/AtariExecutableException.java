@@ -1,11 +1,11 @@
-package org.baktra.dtblib;
+package org.baktra.aelib;
 
 import java.io.File;
 
 /**
  * Exception thrown when DOS 2 Binary File is corrupt
  */
-public class DOS2BinaryException extends Exception {
+public class AtariExecutableException extends Exception {
 
     private final String message;
     private final int offset;
@@ -13,16 +13,16 @@ public class DOS2BinaryException extends Exception {
     private final boolean isAlien;
     
     /**Error message prefix*/
-    private static final String MSG_PREFIX = "Binary file error";
+    private static final String MSG_PREFIX = "Atari executable error";
 
     /**Create a new DOS2BinaryException
      * 
      * @param filename Input file name
      * @param message Message describing the problem
      * @param offset Offset when the problem was found
-     * @param isAlien When true, indicates the input file is not a binary file at all
+     * @param isAlien When true, indicates the input file is not a Atari executable at all
      */
-    public DOS2BinaryException(String filename, String message, int offset, boolean isAlien) {
+    public AtariExecutableException(String filename, String message, int offset, boolean isAlien) {
         this.message = message;
         this.offset = offset;
         File f = new File(filename);
@@ -36,7 +36,7 @@ public class DOS2BinaryException extends Exception {
      * @param message Message describing the problem
      * @param offset Offset when the problem was found
      */
-    public DOS2BinaryException(String filename, String message, int offset) {
+    public AtariExecutableException(String filename, String message, int offset) {
         this(filename, message, offset, false);
     }
 
@@ -124,8 +124,8 @@ public class DOS2BinaryException extends Exception {
     }
     
     /**
-     * Returns true if the exception represents a file that is not a binary file
-     * @return True when not a binary file
+     * Returns true if the exception represents a file that is not a Atari executable
+     * @return True when not a Atari executable
      */
     public boolean isAlien() {
         return isAlien;
